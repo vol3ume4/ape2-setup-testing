@@ -1,0 +1,40 @@
+services:
+  pgvector:
+    image: ankane/pgvector
+    container_name: pgvector
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vector_test
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks: [flownet]
+
+  flowise:
+    image: flowiseai/flowise:3.0.5
+    container_name: flowise
+    depends_on:
+      - pgvector
+    ports:
+      - "3210:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_PATH=/root/.flowise
+      - FLOWISE_FILE_STORAGE_PATH=/root/.flowise/storage
+      - NODE_OPTIONS=--max-old-space-size=4096
+      - FLOWISE_USERNAME=admin@example.com
+      - FLOWISE_PASSWORD=Flowise123!
+    volumes:
+      - ./flowise_data:/root/.flowise
+    restart: unless-stopped
+    networks: [flownet]
+
+volumes:
+  pg_data:
+
+networks:
+  flownet:
+    driver: bridge
